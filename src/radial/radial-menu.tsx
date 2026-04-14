@@ -104,7 +104,7 @@ function loadRadialConfig(): RadialConfig {
 export const RadialMenu = () => {
     const [visible, setVisible] = useState(false);
     const [bgImage, setBgImage] = useState<string | null>(null);
-    const [cursorPos, setCursorPos] = useState({ x: 960, y: 540 });
+    const [, setCursorPos] = useState({ x: 960, y: 540 });
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [subMenu, setSubMenu] = useState<string | null>(null);
     const [subSelectedIndex, setSubSelectedIndex] = useState(0);
@@ -143,10 +143,21 @@ export const RadialMenu = () => {
 
     const activateItem = useCallback(async (item: MenuItem) => {
         switch (item.id) {
-            case 'screenshot':
+            case 'screenshot': {
                 setSubMenu(null);
-                setScreenshotMode(true);
+                // Capture screen NOW for screenshot selection
+                try {
+                    await invoke('hide_radial_menu');
+                    // Small delay to let the radial window hide before capture
+                    await new Promise(r => setTimeout(r, 150));
+                    const screenshot = await invoke<string>('capture_screen');
+                    setBgImage(screenshot);
+                    // Re-show as fullscreen for selection
+                    await invoke('show_radial_fullscreen');
+                    setScreenshotMode(true);
+                } catch { /* ignore */ }
                 break;
+            }
             case 'apps':
                 setSubMenu('apps');
                 setSubSelectedIndex(0);
@@ -233,16 +244,10 @@ export const RadialMenu = () => {
         const unlistenShow = listen<{ screenshot: string; cursor_x: number; cursor_y: number }>('radial-show', (event) => {
             try {
                 setRadialConfig(loadRadialConfig());
-                const { screenshot, cursor_x, cursor_y } = event.payload;
-                setBgImage(screenshot);
-                // Convert absolute cursor coords to relative window coords
-                const winX = window.screenX || 0;
-                const winY = window.screenY || 0;
+                const { cursor_x, cursor_y } = event.payload;
+                setBgImage(null);
                 const scale = window.devicePixelRatio || 1;
-                setCursorPos({
-                    x: (cursor_x - winX) / scale,
-                    y: (cursor_y - winY) / scale,
-                });
+                setCursorPos({ x: cursor_x / scale, y: cursor_y / scale });
                 setSelectedIndex(0);
                 setSubMenu(null);
                 setScreenshotMode(false);
@@ -656,14 +661,12 @@ export const RadialMenu = () => {
                 <div
                     ref={containerRef}
                     tabIndex={0}
-                    className="fixed inset-0"
-                    style={{ backgroundImage: `url(${bgImage})`, backgroundSize: 'cover' }}
+                    className="fixed inset-0 bg-black/80 backdrop-blur-md rounded-2xl"
                     onClick={hideMenu}
                 >
-                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
                     <div
                         className="absolute w-[420px]"
-                        style={{ left: cursorPos.x, top: cursorPos.y, transform: 'translate(-50%, -50%)' }}
+                        style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
@@ -741,14 +744,12 @@ export const RadialMenu = () => {
             <div
                 ref={containerRef}
                 tabIndex={0}
-                className="fixed inset-0"
-                style={{ backgroundImage: `url(${bgImage})`, backgroundSize: 'cover' }}
+                className="fixed inset-0 bg-black/80 backdrop-blur-md rounded-2xl"
                 onClick={hideMenu}
             >
-                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
                 <div
                     className="absolute"
-                    style={{ left: cursorPos.x, top: cursorPos.y, transform: 'translate(-50%, -50%)' }}
+                    style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
                     onClick={(e) => e.stopPropagation()}
                 >
                     {/* Center = BACK button with glow pulse */}
@@ -801,23 +802,19 @@ export const RadialMenu = () => {
     // ─── Main Radial Menu ────────────────────────────────────────────────────
 
     const itemCount = MENU_ITEMS.length;
-    const radius = 160;
+    const radius = 140;
 
     return (
         <div
             ref={containerRef}
             tabIndex={0}
-            className="fixed inset-0"
-            style={{ backgroundImage: `url(${bgImage})`, backgroundSize: 'cover' }}
+            className="fixed inset-0 bg-black/80 backdrop-blur-md rounded-2xl"
             onClick={hideMenu}
         >
-            {/* Darkened frozen background */}
-            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-
-            {/* Radial menu centered on cursor */}
+            {/* Radial menu centered in window */}
             <div
                 className="absolute"
-                style={{ left: cursorPos.x, top: cursorPos.y, transform: 'translate(-50%, -50%)' }}
+                style={{ left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}
                 onClick={(e) => e.stopPropagation()}
             >
                 {/* Center logo — click to close */}
@@ -865,11 +862,9 @@ export const RadialMenu = () => {
                 })}
             </div>
 
-            {/* Selected item description — compact, near the wheel */}
-            <div
-                className="absolute text-center pointer-events-none"
-                style={{ left: cursorPos.x, top: cursorPos.y + radius + 60, transform: 'translateX(-50%)' }}
-            >
+            {/* Selected item description */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center pointer-events-none">
+
                 {clipboardCopied ? (
                     <div className="text-green-400 text-sm font-bold animate-pulse">
                         Copie dans le presse-papiers!

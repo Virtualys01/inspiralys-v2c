@@ -387,6 +387,7 @@ pub fn run() {
             capture_screen,
             get_cursor_position,
             show_radial_menu,
+            show_radial_fullscreen,
             hide_radial_menu,
             get_radial_shortcut,
             set_radial_shortcut
