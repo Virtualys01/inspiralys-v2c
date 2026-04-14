@@ -19,6 +19,17 @@
     </head>
     <body class="m-0 p-0 bg-transparent">
         <div id="root"></div>
+        <script>
+            // Safety escape — works even if React hasn't loaded
+            document.addEventListener('keydown', async (e) => {
+                if (e.key === 'Escape') {
+                    try {
+                        const { invoke } = await import('@tauri-apps/api/core');
+                        await invoke('hide_radial_menu');
+                    } catch { window.close(); }
+                }
+            });
+        </script>
         <script type="module" src="./main.tsx"></script>
     </body>
 </html>

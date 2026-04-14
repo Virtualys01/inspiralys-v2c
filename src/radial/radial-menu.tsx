@@ -230,26 +230,23 @@ export const RadialMenu = () => {
 
     // Listen for show event
     useEffect(() => {
-        const unlistenShow = listen('radial-show', async () => {
+        const unlistenShow = listen<{ screenshot: string; cursor_x: number; cursor_y: number }>('radial-show', (event) => {
             try {
                 setRadialConfig(loadRadialConfig());
-                const [screenshot, pos] = await Promise.all([
-                    invoke<string>('capture_screen'),
-                    invoke<[number, number]>('get_cursor_position'),
-                ]);
+                const { screenshot, cursor_x, cursor_y } = event.payload;
                 setBgImage(screenshot);
                 // Convert absolute cursor coords to relative window coords
-                // The radial window is positioned at the monitor's origin
                 const winX = window.screenX || 0;
                 const winY = window.screenY || 0;
                 const scale = window.devicePixelRatio || 1;
                 setCursorPos({
-                    x: (pos[0] - winX) / scale,
-                    y: (pos[1] - winY) / scale,
+                    x: (cursor_x - winX) / scale,
+                    y: (cursor_y - winY) / scale,
                 });
                 setSelectedIndex(0);
                 setSubMenu(null);
                 setScreenshotMode(false);
+                setEditorMode(false);
                 setVisible(true);
                 containerRef.current?.focus();
             } catch (e) {
