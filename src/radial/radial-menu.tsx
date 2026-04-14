@@ -206,7 +206,15 @@ export const RadialMenu = () => {
                     invoke<[number, number]>('get_cursor_position'),
                 ]);
                 setBgImage(screenshot);
-                setCursorPos({ x: pos[0], y: pos[1] });
+                // Convert absolute cursor coords to relative window coords
+                // The radial window is positioned at the monitor's origin
+                const winX = window.screenX || 0;
+                const winY = window.screenY || 0;
+                const scale = window.devicePixelRatio || 1;
+                setCursorPos({
+                    x: (pos[0] - winX) / scale,
+                    y: (pos[1] - winY) / scale,
+                });
                 setSelectedIndex(0);
                 setSubMenu(null);
                 setScreenshotMode(false);
