@@ -13,6 +13,7 @@ pub mod settings;
 pub mod shortcuts;
 pub mod smartmic;
 pub mod stats;
+pub mod radial;
 pub mod wake_word;
 
 pub use clipboard::*;
@@ -30,4 +31,5 @@ pub use settings::*;
 pub use shortcuts::*;
 pub use smartmic::*;
 pub use stats::*;
+pub use radial::*;
 pub use wake_word::*;

@@ -8,6 +8,7 @@ import { useTranslation } from '@/i18n';
 import { Onboarding } from '../onboarding/onboarding';
 import { RecordLabel } from '@/components/record-label';
 import { MicDisconnectedBanner } from './mic-disconnected-banner/mic-disconnected-banner';
+import inspiralysLogo from '@/assets/inspiralys-logo.png';
 
 export const Home = () => {
     const { shortcut: recordShortcut } = useShortcut(SHORTCUT_CONFIGS.record);
@@ -28,7 +29,14 @@ export const Home = () => {
                 <div className="space-y-2 flex flex-col items-center">
                     <Typography.Title>{t('Live input')}</Typography.Title>
                     <div className="rounded-md border border-border p-2 space-y-4 relative">
-                        <AudioVisualizer bars={34} rows={21} />
+                        <div className="flex items-center gap-3">
+                            <img
+                                src={inspiralysLogo}
+                                alt="Inspiralys"
+                                className="w-12 h-12 rounded-lg object-cover shrink-0"
+                            />
+                            <AudioVisualizer bars={34} rows={21} />
+                        </div>
                         <RecordLabel />
                     </div>
                 </div>

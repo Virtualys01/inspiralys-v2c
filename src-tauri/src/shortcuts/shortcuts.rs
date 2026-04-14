@@ -73,6 +73,12 @@ pub fn handle_shortcut_event(
                 }
             }
         }
+        ShortcutAction::OpenRadialMenu => {
+            if event_type == KeyEventType::Pressed {
+                info!("Opening radial menu");
+                let _ = crate::commands::radial::show_radial_menu(app.clone());
+            }
+        }
     }
 }
 

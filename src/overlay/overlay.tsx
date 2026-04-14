@@ -4,6 +4,7 @@ import { AudioVisualizer } from '@/features/home/audio-visualizer/audio-visualiz
 import { useLevelState } from '@/features/home/audio-visualizer/hooks/use-level-state';
 import type { LLMConnectSettings } from '@/features/extensions/llm-connect/hooks/use-llm-connect';
 import clsx from 'clsx';
+import inspiralysLogo from '@/assets/inspiralys-logo.png';
 
 type RecordingMode = 'standard' | 'llm' | 'command';
 
@@ -96,7 +97,7 @@ export const Overlay = () => {
     return (
         <div
             className={clsx(
-                'w-20',
+                'w-[116px]',
                 'h-7.5',
                 'rounded-sm',
                 recordingMode === 'llm' && 'bg-sky-950',
@@ -104,47 +105,56 @@ export const Overlay = () => {
                 recordingMode === 'standard' && 'bg-black',
                 'relative',
                 'select-none',
-                'overflow-hidden'
+                'overflow-hidden',
+                'flex',
+                'items-center'
             )}
         >
-            {feedback ? (
-                <span
-                    className={clsx(
-                        'text-[8px]',
-                        'font-medium',
-                        'truncate',
-                        'flex',
-                        'items-center',
-                        'justify-center',
-                        'h-full',
-                        'px-1.5',
-                        'animate-in',
-                        'fade-in',
-                        'zoom-in',
-                        'duration-200',
-                        isError && 'text-red-500',
-                        !isError && 'text-white'
-                    )}
-                >
-                    {feedback}
-                </span>
-            ) : (
-                <div className={clsx('origin-center', 'h-[20px]', 'mt-1', 'p-1.5', 'overflow-hidden')}>
-                    {hasAudio ? (
-                        <AudioVisualizer
-                            className="-mt-3"
-                            bars={14}
-                            rows={9}
-                            audioPixelWidth={2}
-                            audioPixelHeight={2}
-                        />
-                    ) : (
-                        <span className="text-white text-[8px] flex items-center justify-center h-full">
-                            {getModeLabel(recordingMode)}
-                        </span>
-                    )}
-                </div>
-            )}
+            <img
+                src={inspiralysLogo}
+                alt=""
+                className="w-[28px] h-[28px] rounded-sm ml-1 shrink-0"
+            />
+            <div className="flex-1 min-w-0">
+                {feedback ? (
+                    <span
+                        className={clsx(
+                            'text-[8px]',
+                            'font-medium',
+                            'truncate',
+                            'flex',
+                            'items-center',
+                            'justify-center',
+                            'h-full',
+                            'px-1.5',
+                            'animate-in',
+                            'fade-in',
+                            'zoom-in',
+                            'duration-200',
+                            isError && 'text-red-500',
+                            !isError && 'text-white'
+                        )}
+                    >
+                        {feedback}
+                    </span>
+                ) : (
+                    <div className={clsx('origin-center', 'h-[20px]', 'mt-1', 'p-1.5', 'overflow-hidden')}>
+                        {hasAudio ? (
+                            <AudioVisualizer
+                                className="-mt-3"
+                                bars={14}
+                                rows={9}
+                                audioPixelWidth={2}
+                                audioPixelHeight={2}
+                            />
+                        ) : (
+                            <span className="text-white text-[8px] flex items-center justify-center h-full">
+                                {getModeLabel(recordingMode)}
+                            </span>
+                        )}
+                    </div>
+                )}
+            </div>
         </div>
     );
 };

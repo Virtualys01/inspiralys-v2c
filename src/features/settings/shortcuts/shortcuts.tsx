@@ -30,6 +30,12 @@ export const Shortcuts = () => {
     } = useShortcut(SHORTCUT_CONFIGS.cancel);
 
     const {
+        shortcut: radialShortcut,
+        setShortcut: setRadialShortcut,
+        resetShortcut: resetRadialShortcut,
+    } = useShortcut(SHORTCUT_CONFIGS.radial);
+
+    const {
         shortcut: llmShortcut,
         setShortcut: setLLMShortcut,
         resetShortcut: resetLLMShortcut,
@@ -139,6 +145,24 @@ export const Shortcuts = () => {
                                 saveShortcut={setCancelShortcut}
                                 resetShortcut={resetCancelShortcut}
                                 dataTestId="cancel-recording-button"
+                            />
+                        </SettingsUI.Item>
+                        <SettingsUI.Separator />
+                        <SettingsUI.Item>
+                            <SettingsUI.Description>
+                                <Typography.Title>Radial Menu</Typography.Title>
+                                <Typography.Paragraph>
+                                    {t('Press ')}
+                                    <RenderKeys keyString={radialShortcut} />
+                                    {' pour ouvrir le menu radial (screenshot, apps, sites, toolbox).'}
+                                </Typography.Paragraph>
+                            </SettingsUI.Description>
+                            <ShortcutButton
+                                keyName="Radial Menu"
+                                shortcut={radialShortcut}
+                                saveShortcut={setRadialShortcut}
+                                resetShortcut={resetRadialShortcut}
+                                dataTestId="radial-menu-button"
                             />
                         </SettingsUI.Item>
                     </SettingsUI.Container>

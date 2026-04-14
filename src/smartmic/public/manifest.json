@@ -1,11 +1,11 @@
 {
-    "name": "Murmure Smart Mic",
+    "name": "Inspiralys V2C Smart Mic",
     "short_name": "Smart Mic",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#0a0a0a",
     "theme_color": "#0a0a0a",
-    "description": "Use your smartphone as a wireless microphone and touchpad for Murmure",
+    "description": "Use your smartphone as a wireless microphone and touchpad for Inspiralys V2C",
     "icons": [
         {
             "src": "/icon-192.png",

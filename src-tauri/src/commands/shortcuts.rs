@@ -168,6 +168,34 @@ pub fn cancel_recording(app: AppHandle) {
 }
 
 // ============================================================================
+// Radial Menu Shortcut
+// ============================================================================
+
+#[command]
+pub fn get_radial_shortcut(app: AppHandle) -> Result<String, String> {
+    let s = settings::load_settings(&app);
+    Ok(s.radial_shortcut)
+}
+
+#[command]
+pub fn set_radial_shortcut(app: AppHandle, binding: String) -> Result<String, String> {
+    let keys = parse_binding_keys(&binding);
+    if keys.is_empty() {
+        return Err("Invalid shortcut".to_string());
+    }
+    let normalized = keys_to_string(&keys);
+
+    let mut s = settings::load_settings(&app);
+    s.radial_shortcut = normalized.clone();
+    settings::save_settings(&app, &s)?;
+
+    app.state::<ShortcutRegistryState>()
+        .update_binding(ShortcutAction::OpenRadialMenu, keys);
+
+    Ok(normalized)
+}
+
+// ============================================================================
 // Suspend/Resume Transcription
 // ============================================================================
 

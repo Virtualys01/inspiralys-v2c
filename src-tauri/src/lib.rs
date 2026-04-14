@@ -106,6 +106,8 @@ pub fn run() {
         )
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_process::init())
         .device_event_filter(DeviceEventFilter::Never)
         .setup(|app| {
@@ -188,6 +190,42 @@ pub fn run() {
             overlay::overlay::create_recording_overlay(app.handle());
             if s.overlay_mode.as_str() == "always" {
                 overlay::overlay::show_recording_overlay(app.handle());
+            }
+
+            // Create radial menu window (hidden, fullscreen, transparent)
+            {
+                let app_handle = app.handle().clone();
+                if let Ok(monitors) = app_handle.available_monitors() {
+                    if let Some(monitor) = monitors.into_iter().find(|m| {
+                        app_handle.primary_monitor().ok().flatten().map(|p| p.name() == m.name()).unwrap_or(false)
+                    }).or_else(|| app_handle.primary_monitor().ok().flatten()) {
+                        let size = monitor.size();
+                        let pos = monitor.position();
+                        let res = tauri::WebviewWindowBuilder::new(
+                            &app_handle,
+                            "radial_menu",
+                            tauri::WebviewUrl::App("src/radial/index.html".into()),
+                        )
+                        .title("Radial Menu")
+                        .resizable(false)
+                        .shadow(false)
+                        .maximizable(false)
+                        .minimizable(false)
+                        .closable(false)
+                        .decorations(false)
+                        .always_on_top(true)
+                        .skip_taskbar(true)
+                        .transparent(true)
+                        .focused(false)
+                        .visible(false)
+                        .build();
+                        if let Ok(window) = res {
+                            let _ = window.set_position(tauri::Position::Physical(tauri::PhysicalPosition { x: pos.x, y: pos.y }));
+                            let _ = window.set_size(tauri::Size::Physical(tauri::PhysicalSize { width: size.width, height: size.height }));
+                            log::debug!("Radial menu window created (hidden)");
+                        }
+                    }
+                }
             }
 
             init_shortcuts(app.handle().clone());
@@ -345,7 +383,13 @@ pub fn run() {
             get_smartmic_qr_code,
             get_paired_devices,
             remove_paired_device,
-            reset_smartmic_tokens
+            reset_smartmic_tokens,
+            capture_screen,
+            get_cursor_position,
+            show_radial_menu,
+            hide_radial_menu,
+            get_radial_shortcut,
+            set_radial_shortcut
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

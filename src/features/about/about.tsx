@@ -86,7 +86,7 @@ export const About = () => {
                     <div className="flex items-center justify-center gap-3">
                         <motion.img
                             src={appIcon}
-                            alt="Murmure"
+                            alt="Inspiralys V2C"
                             className="w-14 h-14"
                             style={{
                                 filter: 'drop-shadow(0 0 20px rgba(56, 189, 248, 0.3))',

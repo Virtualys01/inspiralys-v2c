@@ -89,4 +89,9 @@ export const SHORTCUT_CONFIGS = {
         getCommand: 'get_cancel_shortcut',
         setCommand: 'set_cancel_shortcut',
     },
+    radial: {
+        defaultShortcut: 'ctrl+alt+s',
+        getCommand: 'get_radial_shortcut',
+        setCommand: 'set_radial_shortcut',
+    },
 };

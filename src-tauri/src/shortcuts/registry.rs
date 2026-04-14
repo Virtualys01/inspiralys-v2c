@@ -34,6 +34,15 @@ impl ShortcutRegistry {
             },
         ];
 
+        let radial_keys = parse_binding_keys(&settings.radial_shortcut);
+        if !radial_keys.is_empty() {
+            bindings.push(ShortcutBinding {
+                keys: radial_keys,
+                action: ShortcutAction::OpenRadialMenu,
+                activation_mode: ActivationMode::PushToTalk,
+            });
+        }
+
         let cancel_keys = parse_binding_keys(&settings.cancel_shortcut);
         if !cancel_keys.is_empty() {
             bindings.push(ShortcutBinding {

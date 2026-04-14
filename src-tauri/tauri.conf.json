@@ -1,8 +1,8 @@
 {
     "$schema": "https://schema.tauri.app/config/2",
-    "productName": "murmure",
+    "productName": "Inspiralys V2C",
     "version": "1.8.1",
-    "identifier": "com.al1x-ai.murmure",
+    "identifier": "ca.inspiralys.v2c",
     "build": {
         "beforeDevCommand": "pnpm dev",
         "devUrl": "http://localhost:1420",
@@ -12,7 +12,7 @@
     "app": {
         "windows": [
             {
-                "title": "Murmure",
+                "title": "Inspiralys V2C",
                 "width": 920,
                 "height": 768,
                 "minWidth": 870,
@@ -57,7 +57,7 @@
     },
     "plugins": {
         "cli": {
-            "description": "Murmure - Privacy-first speech-to-text",
+            "description": "Inspiralys V2C - Privacy-first speech-to-text",
             "subcommands": {
                 "import": {
                     "description": "Import a .murmure configuration file",
@@ -80,7 +80,7 @@
             }
         },
         "updater": {
-            "active": true,
+            "active": false,
             "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDNDRTZFRDczMzY2MzI5NDEKUldSQktXTTJjKzNtUEl6Q2htQ1AvcXlWVzExOG5wYWtLUjFYWVFWUCtnQU9Qb1o3RG03VmwzakkK",
             "endpoints": ["https://github.com/Kieirra/murmure/releases/latest/download/latest.json"],
             "windows": {

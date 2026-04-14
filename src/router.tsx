@@ -10,6 +10,8 @@ import { LLMConnect } from './features/extensions/llm-connect/llm-connect';
 import { VoiceMode } from './features/extensions/voice-mode/voice-mode';
 import { ImportExport } from './features/settings/import-export/import-export';
 import { SmartMic } from './features/extensions/smart-mic/smart-mic';
+import { Toolbox } from './features/toolbox/toolbox';
+import { RadialMenuConfig } from './features/toolbox/radial-config';
 
 const rootRoute = createRootRoute({
     component: () => <Layout />,
@@ -99,6 +101,18 @@ const settingsImportExportRoute = createRoute({
     component: ImportExport,
 });
 
+const toolboxRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/toolbox',
+    component: Toolbox,
+});
+
+const radialConfigRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/toolbox/radial',
+    component: RadialMenuConfig,
+});
+
 const aboutRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/about',
@@ -120,6 +134,8 @@ const routeTree = rootRoute.addChildren([
     extensionsLLMConnectRoute,
     extensionsVoiceModeRoute,
     extensionsSmartMicRoute,
+    toolboxRoute,
+    radialConfigRoute,
     aboutRoute,
 ]);
 

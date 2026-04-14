@@ -15,6 +15,8 @@ import {
     ArrowDownUp,
     Puzzle,
     Smartphone,
+    Terminal,
+    CircleDot,
 } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
@@ -99,6 +101,7 @@ export const AppSidebar = () => {
     const [personalizeOpen, setPersonalizeOpen] = useState(pathname.startsWith('/personalize'));
     const [extensionsOpen, setExtensionsOpen] = useState(pathname.startsWith('/extensions'));
     const [settingsOpen, setSettingsOpen] = useState(pathname.startsWith('/settings'));
+    const [toolboxOpen, setToolboxOpen] = useState(pathname.startsWith('/toolbox'));
 
     useEffect(() => {
         if (pathname.startsWith('/extensions')) {
@@ -126,6 +129,39 @@ export const AppSidebar = () => {
                                     <span>{t('Home')}</span>
                                 </Link>
                             </SidebarMenuButton>
+                        </SidebarMenuItem>
+
+                        <SidebarMenuItem>
+                            <SidebarMenuButton
+                                onClick={() => setToolboxOpen(!toolboxOpen)}
+                                data-testid="toolbox-tab"
+                            >
+                                <Terminal />
+                                <span>{t('Toolbox')}</span>
+                                <ChevronRight
+                                    className={`ml-auto transition-transform ${toolboxOpen ? 'rotate-90' : ''}`}
+                                />
+                            </SidebarMenuButton>
+                            {toolboxOpen && (
+                                <SidebarMenuSub>
+                                    <SidebarMenuSubItem data-testid="toolbox-commands-tab">
+                                        <SidebarMenuSubButton asChild isActive={pathname === '/toolbox'}>
+                                            <Link to="/toolbox">
+                                                <Terminal />
+                                                <span>Commandes</span>
+                                            </Link>
+                                        </SidebarMenuSubButton>
+                                    </SidebarMenuSubItem>
+                                    <SidebarMenuSubItem data-testid="toolbox-radial-tab">
+                                        <SidebarMenuSubButton asChild isActive={pathname === '/toolbox/radial'}>
+                                            <Link to="/toolbox/radial">
+                                                <CircleDot />
+                                                <span>Radial Menu</span>
+                                            </Link>
+                                        </SidebarMenuSubButton>
+                                    </SidebarMenuSubItem>
+                                </SidebarMenuSub>
+                            )}
                         </SidebarMenuItem>
 
                         <SidebarMenuItem>
