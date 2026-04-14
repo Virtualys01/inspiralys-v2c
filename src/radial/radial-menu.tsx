@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { listen } from '@tauri-apps/api/event';
 import inspiralysLogo from '@/assets/inspiralys-logo.png';
 
 // ─── Menu Items ──────────────────────────────────────────────────────────────
@@ -102,9 +101,7 @@ function loadRadialConfig(): RadialConfig {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export const RadialMenu = () => {
-    const [visible, setVisible] = useState(false);
     const [bgImage, setBgImage] = useState<string | null>(null);
-    const [, setCursorPos] = useState({ x: 960, y: 540 });
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [subMenu, setSubMenu] = useState<string | null>(null);
     const [subSelectedIndex, setSubSelectedIndex] = useState(0);
@@ -131,7 +128,6 @@ export const RadialMenu = () => {
     const [selEnd, setSelEnd] = useState<{ x: number; y: number } | null>(null);
 
     const hideMenu = useCallback(async () => {
-        setVisible(false);
         setSubMenu(null);
         setScreenshotMode(false);
         setEditorMode(false);
@@ -241,38 +237,26 @@ export const RadialMenu = () => {
 
     // Listen for show event
     useEffect(() => {
-        const unlistenShow = listen<{ screenshot: string; cursor_x: number; cursor_y: number }>('radial-show', (event) => {
-            try {
-                setRadialConfig(loadRadialConfig());
-                const { cursor_x, cursor_y } = event.payload;
-                setBgImage(null);
-                const scale = window.devicePixelRatio || 1;
-                setCursorPos({ x: cursor_x / scale, y: cursor_y / scale });
-                setSelectedIndex(0);
-                setSubMenu(null);
-                setScreenshotMode(false);
-                setEditorMode(false);
-                setVisible(true);
-                containerRef.current?.focus();
-            } catch (e) {
-                console.error('Failed to show radial menu:', e);
-            }
-        });
+        // Reset state whenever window gets focus (= menu opened)
+        const handleFocus = () => {
+            setRadialConfig(loadRadialConfig());
+            setSelectedIndex(0);
+            setSubMenu(null);
+            setScreenshotMode(false);
+            setEditorMode(false);
+            setBgImage(null);
+            containerRef.current?.focus();
+        };
 
-        const unlistenHide = listen('radial-hide', () => {
-            setVisible(false);
-        });
+        window.addEventListener('focus', handleFocus);
 
         return () => {
-            unlistenShow.then((u) => u());
-            unlistenHide.then((u) => u());
+            window.removeEventListener('focus', handleFocus);
         };
     }, []);
 
     // Keyboard handler
     useEffect(() => {
-        if (!visible) return;
-
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
                 if (editorMode) {
@@ -293,12 +277,10 @@ export const RadialMenu = () => {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [visible, subMenu, screenshotMode, hideMenu]);
+    }, [subMenu, screenshotMode, editorMode, hideMenu]);
 
     // Mouse wheel for rotation
     useEffect(() => {
-        if (!visible) return;
-
         const handleWheel = (e: WheelEvent) => {
             e.preventDefault();
             if (subMenu === 'apps') {
@@ -320,7 +302,7 @@ export const RadialMenu = () => {
 
         window.addEventListener('wheel', handleWheel, { passive: false });
         return () => window.removeEventListener('wheel', handleWheel);
-    }, [visible, subMenu, screenshotMode]);
+    }, [subMenu, screenshotMode, historyEntries]);
 
     // Screenshot selection handlers
     const handleScreenshotMouseDown = useCallback((e: React.MouseEvent) => {
@@ -367,8 +349,6 @@ export const RadialMenu = () => {
             setSelEnd(null);
         }
     }, [screenshotMode, selStart, selEnd, bgImage]);
-
-    if (!visible) return null;
 
     // ─── Screenshot Editor ─────────────────────────────────────────────────
 
