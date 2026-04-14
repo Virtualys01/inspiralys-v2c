@@ -110,6 +110,7 @@ export const RadialMenu = () => {
     const [subSelectedIndex, setSubSelectedIndex] = useState(0);
     const containerRef = useRef<HTMLDivElement>(null);
     const [radialConfig, setRadialConfig] = useState<RadialConfig>(loadRadialConfig());
+    const [clipboardCopied, setClipboardCopied] = useState(false);
 
     // Screenshot selection state
     const [screenshotMode, setScreenshotMode] = useState(false);
@@ -141,7 +142,16 @@ export const RadialMenu = () => {
                 break;
             case 'toolbox':
                 await hideMenu();
-                // Focus main window and navigate to toolbox
+                try {
+                    const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow');
+                    const mainWin = await WebviewWindow.getByLabel('main');
+                    if (mainWin) {
+                        await mainWin.show();
+                        await mainWin.setFocus();
+                        // Navigate to toolbox via event
+                        await mainWin.emit('navigate-to', '/toolbox');
+                    }
+                } catch { /* ignore */ }
                 break;
             case 'dictate':
                 await hideMenu();
@@ -151,6 +161,10 @@ export const RadialMenu = () => {
                     const history = await invoke<{ text: string }[]>('get_recent_transcriptions');
                     if (history.length > 0 && history[0].text) {
                         await navigator.clipboard.writeText(history[0].text);
+                        // Brief visual feedback before hiding
+                        setClipboardCopied(true);
+                        await new Promise(r => setTimeout(r, 600));
+                        setClipboardCopied(false);
                     }
                 } catch { /* ignore */ }
                 await hideMenu();
@@ -374,13 +388,14 @@ export const RadialMenu = () => {
                     style={{ left: cursorPos.x, top: cursorPos.y, transform: 'translate(-50%, -50%)' }}
                     onClick={(e) => e.stopPropagation()}
                 >
-                    {/* Center = BACK button */}
+                    {/* Center = BACK button with glow pulse */}
                     <button
-                        className="absolute w-16 h-16 -translate-x-1/2 -translate-y-1/2 z-20 rounded-full bg-black/90 border-2 border-white/30 hover:border-sky-400 hover:bg-sky-900/40 flex items-center justify-center shadow-2xl transition-all cursor-pointer"
+                        className="absolute w-16 h-16 -translate-x-1/2 -translate-y-1/2 z-20 rounded-full bg-black/80 border-2 border-sky-400 hover:border-white hover:bg-sky-800/60 flex items-center justify-center transition-all cursor-pointer animate-pulse"
+                        style={{ boxShadow: '0 0 20px rgba(56, 189, 248, 0.5), 0 0 40px rgba(56, 189, 248, 0.2)' }}
                         onClick={() => { setSubMenu(null); setSubSelectedIndex(0); }}
                         title="Retour"
                     >
-                        <span className="text-white text-lg">↩</span>
+                        <span className="text-sky-300 text-xl font-bold">↩</span>
                     </button>
 
                     {/* Sub items in circle */}
@@ -442,12 +457,14 @@ export const RadialMenu = () => {
                 style={{ left: cursorPos.x, top: cursorPos.y, transform: 'translate(-50%, -50%)' }}
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Center logo */}
-                <div className="absolute w-20 h-20 -translate-x-1/2 -translate-y-1/2 z-20">
-                    <div className="w-full h-full rounded-full bg-black/90 border-2 border-sky-500/50 flex items-center justify-center shadow-2xl shadow-sky-500/20">
-                        <img src={inspiralysLogo} alt="" className="w-12 h-12 rounded-full" />
-                    </div>
-                </div>
+                {/* Center logo — click to close */}
+                <button
+                    className="absolute w-20 h-20 -translate-x-1/2 -translate-y-1/2 z-20 rounded-full bg-black/90 border-2 border-sky-500/50 hover:border-sky-400 hover:scale-110 flex items-center justify-center shadow-2xl shadow-sky-500/20 transition-all cursor-pointer"
+                    onClick={hideMenu}
+                    title="Fermer"
+                >
+                    <img src={inspiralysLogo} alt="" className="w-12 h-12 rounded-full" />
+                </button>
 
                 {/* Connecting lines */}
                 <svg className="absolute -translate-x-1/2 -translate-y-1/2 z-0" width={radius * 2 + 120} height={radius * 2 + 120} style={{ left: 0, top: 0, marginLeft: -(radius + 60), marginTop: -(radius + 60) }}>
@@ -511,15 +528,23 @@ export const RadialMenu = () => {
                 className="absolute text-center pointer-events-none"
                 style={{ left: cursorPos.x, top: cursorPos.y + radius + 60, transform: 'translateX(-50%)' }}
             >
-                <div
-                    className="text-sm font-bold transition-all duration-300"
-                    style={{ color: MENU_ITEMS[selectedIndex].color }}
-                >
-                    {MENU_ITEMS[selectedIndex].icon} {MENU_ITEMS[selectedIndex].label}
-                </div>
-                <div className="text-white/50 text-xs">
-                    {MENU_ITEMS[selectedIndex].description}
-                </div>
+                {clipboardCopied ? (
+                    <div className="text-green-400 text-sm font-bold animate-pulse">
+                        Copie dans le presse-papiers!
+                    </div>
+                ) : (
+                    <>
+                        <div
+                            className="text-sm font-bold transition-all duration-300"
+                            style={{ color: MENU_ITEMS[selectedIndex].color }}
+                        >
+                            {MENU_ITEMS[selectedIndex].icon} {MENU_ITEMS[selectedIndex].label}
+                        </div>
+                        <div className="text-white/50 text-xs">
+                            {MENU_ITEMS[selectedIndex].description}
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );
