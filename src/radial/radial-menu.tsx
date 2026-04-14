@@ -102,6 +102,7 @@ function loadRadialConfig(): RadialConfig {
 
 export const RadialMenu = () => {
     const [bgImage, setBgImage] = useState<string | null>(null);
+    const internalTransition = useRef(false);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const [subMenu, setSubMenu] = useState<string | null>(null);
     const [subSelectedIndex, setSubSelectedIndex] = useState(0);
@@ -141,17 +142,18 @@ export const RadialMenu = () => {
         switch (item.id) {
             case 'screenshot': {
                 setSubMenu(null);
-                // Capture screen NOW for screenshot selection
                 try {
+                    internalTransition.current = true;
                     await invoke('hide_radial_menu');
-                    // Small delay to let the radial window hide before capture
-                    await new Promise(r => setTimeout(r, 150));
+                    await new Promise(r => setTimeout(r, 200));
                     const screenshot = await invoke<string>('capture_screen');
                     setBgImage(screenshot);
-                    // Re-show as fullscreen for selection
-                    await invoke('show_radial_fullscreen');
                     setScreenshotMode(true);
-                } catch { /* ignore */ }
+                    internalTransition.current = true; // set again before show
+                    await invoke('show_radial_fullscreen');
+                } catch {
+                    internalTransition.current = false;
+                }
                 break;
             }
             case 'apps':
@@ -238,7 +240,12 @@ export const RadialMenu = () => {
     // Listen for show event
     useEffect(() => {
         // Reset state whenever window gets focus (= menu opened)
+        // Skip reset if we're in an internal transition (e.g. screenshot mode)
         const handleFocus = () => {
+            if (internalTransition.current) {
+                internalTransition.current = false;
+                return;
+            }
             setRadialConfig(loadRadialConfig());
             setSelectedIndex(0);
             setSubMenu(null);
