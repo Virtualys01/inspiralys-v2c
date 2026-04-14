@@ -50,11 +50,11 @@ const MENU_ITEMS: MenuItem[] = [
         description: 'Demarrer la transcription vocale',
     },
     {
-        id: 'clipboard',
-        label: 'Historique',
+        id: 'copypaste',
+        label: 'Copy/Paste',
         icon: '📋',
         color: '#fb923c',
-        description: 'Dernier texte transcrit',
+        description: 'Historique copier-coller + transcriptions',
     },
 ];
 
@@ -171,12 +171,32 @@ export const RadialMenu = () => {
             case 'dictate':
                 await hideMenu();
                 break;
-            case 'clipboard': {
+            case 'copypaste': {
                 try {
+                    // Get transcriptions
                     const entries = await invoke<{ id: number; text: string; timestamp: number }[]>('get_recent_transcriptions');
-                    setHistoryEntries(entries.filter(e => e.text));
-                    if (entries.filter(e => e.text).length > 0) {
-                        setSubMenu('clipboard');
+                    const transcriptions = entries.filter(e => e.text);
+
+                    // Get current clipboard text
+                    let clipboardItems: { id: number; text: string; timestamp: number }[] = [];
+                    try {
+                        const clipText = await navigator.clipboard.readText();
+                        if (clipText && clipText.trim()) {
+                            clipboardItems = [{ id: -1, text: clipText, timestamp: Math.floor(Date.now() / 1000) }];
+                        }
+                    } catch { /* clipboard access denied */ }
+
+                    // Merge: clipboard first, then transcriptions (dedupe)
+                    const merged = [...clipboardItems];
+                    for (const t of transcriptions) {
+                        if (!merged.some(m => m.text === t.text)) {
+                            merged.push(t);
+                        }
+                    }
+
+                    setHistoryEntries(merged);
+                    if (merged.length > 0) {
+                        setSubMenu('copypaste');
                         setSubSelectedIndex(0);
                     }
                 } catch { /* ignore */ }
@@ -285,7 +305,7 @@ export const RadialMenu = () => {
             } else if (subMenu === 'sites') {
                 const len = radialConfig.sites.length;
                 setSubSelectedIndex((prev) => ((prev + (e.deltaY > 0 ? 1 : -1)) % len + len) % len);
-            } else if (subMenu === 'clipboard') {
+            } else if (subMenu === 'copypaste') {
                 const len = historyEntries.length;
                 if (len > 0) setSubSelectedIndex((prev) => ((prev + (e.deltaY > 0 ? 1 : -1)) % len + len) % len);
             } else if (!screenshotMode) {
@@ -634,7 +654,7 @@ export const RadialMenu = () => {
 
     if (subMenu) {
         // Clipboard sub-menu shows transcription history as a list
-        if (subMenu === 'clipboard') {
+        if (subMenu === 'copypaste') {
             return (
                 <div
                     ref={containerRef}
@@ -659,7 +679,7 @@ export const RadialMenu = () => {
                             >
                                 <span className="text-sky-300 text-lg font-bold">↩</span>
                             </button>
-                            <span className="text-white font-medium text-sm">Historique — cliquer pour copier</span>
+                            <span className="text-white font-medium text-sm">Copy / Paste — cliquer pour copier</span>
                         </div>
 
                         {/* Transcription entries */}
@@ -691,7 +711,15 @@ export const RadialMenu = () => {
                                         onMouseEnter={() => setSubSelectedIndex(i)}
                                     >
                                         <div className="flex items-start justify-between gap-2">
-                                            <p className="text-sm text-white line-clamp-2 flex-1">{entry.text}</p>
+                                            <div className="flex-1 min-w-0">
+                                                {entry.id === -1 && (
+                                                    <span className="text-[10px] text-sky-400 font-bold uppercase">Clipboard actuel</span>
+                                                )}
+                                                {entry.id > 0 && (
+                                                    <span className="text-[10px] text-orange-400/70 font-bold uppercase">Transcription</span>
+                                                )}
+                                                <p className="text-sm text-white line-clamp-2">{entry.text}</p>
+                                            </div>
                                             <span className="text-xs text-white/40 shrink-0">{timeAgo}</span>
                                         </div>
                                     </button>
