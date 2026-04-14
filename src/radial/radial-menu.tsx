@@ -143,14 +143,14 @@ export const RadialMenu = () => {
             case 'toolbox':
                 await hideMenu();
                 try {
+                    const { emit } = await import('@tauri-apps/api/event');
                     const { WebviewWindow } = await import('@tauri-apps/api/webviewWindow');
                     const mainWin = await WebviewWindow.getByLabel('main');
                     if (mainWin) {
                         await mainWin.show();
                         await mainWin.setFocus();
-                        // Navigate to toolbox via event
-                        await mainWin.emit('navigate-to', '/toolbox');
                     }
+                    await emit('navigate-to', '/toolbox');
                 } catch { /* ignore */ }
                 break;
             case 'dictate':
@@ -465,27 +465,6 @@ export const RadialMenu = () => {
                 >
                     <img src={inspiralysLogo} alt="" className="w-12 h-12 rounded-full" />
                 </button>
-
-                {/* Connecting lines */}
-                <svg className="absolute -translate-x-1/2 -translate-y-1/2 z-0" width={radius * 2 + 120} height={radius * 2 + 120} style={{ left: 0, top: 0, marginLeft: -(radius + 60), marginTop: -(radius + 60) }}>
-                    {MENU_ITEMS.map((_, i) => {
-                        const angle = (i / itemCount) * Math.PI * 2 - Math.PI / 2;
-                        const cx = radius + 60;
-                        const cy = radius + 60;
-                        const x2 = cx + Math.cos(angle) * radius;
-                        const y2 = cy + Math.sin(angle) * radius;
-                        const isSelected = i === selectedIndex;
-                        return (
-                            <line
-                                key={i}
-                                x1={cx} y1={cy} x2={x2} y2={y2}
-                                stroke={isSelected ? MENU_ITEMS[i].color : 'rgba(255,255,255,0.1)'}
-                                strokeWidth={isSelected ? 2 : 1}
-                                strokeDasharray={isSelected ? 'none' : '4,4'}
-                            />
-                        );
-                    })}
-                </svg>
 
                 {/* Menu items in circle */}
                 {MENU_ITEMS.map((item, i) => {
